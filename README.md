@@ -1,103 +1,58 @@
-# Veewee
+# Using Veewee on OSX 10.9 to build a Debian VM for use with Vagrant  
 
-[![Build Status](https://travis-ci.org/jedi4ever/veewee.png)](https://travis-ci.org/jedi4ever/veewee)
+The Veewee instructions can be found [here](https://github.com/jedi4ever/veewee/blob/master/doc/basics.md).
 
-Veewee is a tool for easily (and repeatedly) building custom [Vagrant](https://github.com/mitchellh/vagrant) base boxes, KVMs, and virtual machine images.
+This tutorial focuses on running Veewee on OSX 10.9 to build a Debian VM for use with Vagrant.
 
+## Install rvm using homebrew
+http://www.moncefbelyamani.com/how-to-install-xcode-homebrew-git-rvm-ruby-on-mac/
 
-## About Vagrant
+		brew install rvm
+		curl -L https://get.rvm.io | bash -s stable --rails --autolibs=enable
+		source /Users/jasondarwin/.rvm/scripts/rvm
+		rvm requirements
+		brew tap --repair
+		brew doctor
+		brew unlink libxml2
 
-Vagrant is a great tool for creating and configuring lightweight, reproducible, portable virtual machine environments - often used with the addition of automation tools such as [Chef](https://github.com/opscode/chef) or [Puppet](https://github.com/puppetlabs/puppet).
+## Install Ruby using rvm and homebrew
 
-The first step to build a new virtual machine is to download an existing 'base box'. I believe this scares a lot of people as they don't know how these unverified boxes were built. Therefore a lot of people end up building their own base box which is often time consuming and cumbersome. Veewee aims to automate all the steps for building base boxes and to collect best practices in a transparent way.
+		rvm requirements
+		rvm install ruby-2.0.0-p353
+		brew link libyaml
+		brew link --overwrite --dry-run libyaml
+		brew link --overwrite libyaml
+		rvm install ruby-2.0.0-p353
+		rm /Library/Caches/Homebrew/openssl-1.0.1e.tar.gz
+		brew install openssl
+		rvm install ruby-2.0.0-p353
 
+## Install Veewee
 
-## Veewee's Supported VM Providers
+		git clone https://github.com/jedi4ever/veewee.git
+		cd veewee/
+		sudo gem install bundler
+		sudo bundle install
 
-Veewee isn't only for Vagrant.  It currently supports exporting VM images for the following providers:
+## Use Veewee to build our VM
 
-* [VirtualBox](http://www.virtualbox.org/) - exports to `OVF` filetype
-* [VMware (Fusion)](http://www.vmware.com/products/fusion/) - exports to `OVA` filetype
-* [KVM](http://www.linux-kvm.org/) - exports to `IMG` filetype
-* [Parallels](http://www.parallels.com/) - none yet, but can export to `parallels` format (provided by [vagrant-parallels](https://github.com/yshahin/vagrant-parallels))
+		bundle exec veewee
+		veewee
+		veewee vbox templates
+		veewee vbox define debian-7.2.0-i386-netboot Debian-7.2.0-i386-netboot
+		veewee vbox build 'debian-7.2.0-i386-netboot' --workdir=/Users/jasondarwin/workspace/veewee
+		ls -la ~/VirtualBox\ VMs/
 
+## Use Veewee to export our built VM to Virtual Box / Vagrant format
 
-## Getting Started
+		veewee vbox export debian-7.2.0-i386-netboot
 
-Before you start, we recommend reading through these pages:
+## Import into Vagrant
 
-* [Requirements](doc/requirements.md) that must be met before installing Veewee
-* [Veewee Installation](doc/installation.md) instructions
-* [Command Options](doc/commands.md) highlights various approaches for executing Veewee on the command line
+		# To import it into vagrant type:
+		vagrant box add 'debian-7.2.0-i386-netboot' '/Users/jasondarwin/workspace/veewee/debian-7.2.0-i386-netboot.box'
 
-Next, learn about Veewee fundamentals:
-
-* [Veewee Basics](doc/basics.md) covers creating standard-issue boxes
-* [Customizing Definitions](doc/customize.md) helps you fine tune each box definition to meet your exact needs
-* [Veeweefile](doc/veeweefile.md) can be used to define your own paths
-
-Then depending on how you want to use Veewee, we suggest to read through one of the following guides:
-
-* [Guide for Vagrant](doc/vagrant.md)
-* [Guide for VirtualBox](doc/vbox.md)
-* [Guide for VMware Fusion](doc/fusion.md)
-* [Guide for KVM](doc/kvm.md)
-* [Guide for Parallels Desktop](doc/parallels.md)
-
-Major noteworthy changes between versions can be found here:
-
-* [Changes](doc/changes.md) between versions
-
-A complete list of all docs can be found by viewing the [doc directory](doc).
-
-
-## Veewee Commands
-
-Below is an overview of the `veewee` command options:
-
-    $ bundle exec veewee
-
-    # Commands:
-    #   veewee add_share       # Adds a Share to the Guest
-    #   veewee fusion          # Subcommand for Vmware fusion
-    #   veewee help [COMMAND]  # Describe available commands or one specific command
-    #   veewee kvm             # Subcommand for KVM
-    #   veewee parallels       # Subcommand for Parallels
-    #   veewee vbox            # Subcommand for VirtualBox
-    #   veewee version         # Prints the Veewee version information
-
-Learn how to avoid typing `bundle exec` by visiting the [Commands](doc/commands.md) doc.
-
-
-## Veewee Provider Subcommands
-
-Below is an overview of the `veewee` provider subcommand options:
-
-    $ bundle exec veewee <provider>
-
-    # Commands:
-    #   veewee <provider> build [BOX_NAME]                 # Build box
-    #   veewee <provider> copy [BOXNAME] [SRC] [DST]       # Copy a file to the VM
-    #   veewee <provider> define [BOXNAME] [TEMPLATE]      # Define a new basebox starting from a template
-    #   veewee <provider> destroy [BOXNAME]                # Destroys the basebox that was built
-    #   veewee <provider> halt [BOXNAME]                   # Activates a shutdown on the basebox
-    #   veewee <provider> help [COMMAND]                   # Describe subcommands or one specific subcommand
-    #   veewee <provider> list                             # Lists all defined boxes
-    #   veewee <provider> ostypes                          # List the available Operating System types
-    #   veewee <provider> screenshot [NAME] [PNGFILENAME]  # Takes a screenshot of the box
-    #   veewee <provider> ssh [BOXNAME] [COMMAND]          # Interactive ssh login
-    #   veewee <provider> templates                        # List the currently available templates
-    #   veewee <provider> undefine [BOXNAME]               # Removes the definition of a basebox
-    #   veewee <provider> up [BOXNAME]                     # Starts a Box
-    #   veewee <provider> validate [NAME]                  # Validates a box against vagrant compliancy rules
-    #   veewee <provider> winrm [BOXNAME] [COMMAND]        # Execute command via winrm
-
-
-## Contribute
-
-People have reported good experiences, why don't you give it a try?
-
-If you have a setup working, share your 'definition' with me. That would be fun!
-
-See [CONTRIBUTE.md](CONTRIBUTE.md).
-
+		# To use it:
+		vagrant init 'debian-7.2.0-i386-netboot'
+		vagrant up
+		vagrant ssh
